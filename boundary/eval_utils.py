@@ -1,4 +1,3 @@
-import torch
 import vocab
 from config import *
 

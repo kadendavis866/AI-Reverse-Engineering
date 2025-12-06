@@ -1,11 +1,9 @@
 from multiprocessing.spawn import freeze_support
 
-from config import *
-import torch
-import os
 import glob
 from torch.utils.data import TensorDataset, DataLoader, random_split
 from model import NN
+from config import *
 
 device = CUDA_DEVICE
 
@@ -55,7 +53,8 @@ class Classifier(object):
         self.model = self.model.to(self.device)
         self.criterion = torch.nn.CrossEntropyLoss()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=LEARNING_RATE, weight_decay=0)
-        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode="min", patience=10, min_lr=1e-6)
+        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode="min", patience=10,
+                                                                    min_lr=1e-6)
         scaler_cls = getattr(torch.amp, "GradScaler", torch.cuda.amp.GradScaler)
         self.scaler = scaler_cls(enabled=USE_CUDA)
 

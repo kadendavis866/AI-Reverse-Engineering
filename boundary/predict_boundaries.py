@@ -1,9 +1,7 @@
 import argparse
 import json
-import os
-import torch
 
-from config import USE_CUDA, CUDA_DEVICE, BASE_DIR
+from config import *
 from model import NN
 import eval_utils as utils
 
@@ -68,11 +66,16 @@ def aggregate_probs(probs_list, starts, total_len, window_size):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Predict function boundaries from a list of disassembled instructions.")
-    parser.add_argument("--model-path", default=str(BASE_DIR / "trained_model" / "lstm_classifier.pt"), help="Path to the saved model checkpoint.")
-    parser.add_argument("--instructions", required=True, help="Path to JSON array/text/JSONL (one instruction per line).")
-    parser.add_argument("--output", default=str(BASE_DIR / "output.jsonl"), help="Optional path to write predictions as JSONL.")
-    parser.add_argument("--threshold", type=float, default=0.5, help="Probability threshold for boundary classification.")
+    parser = argparse.ArgumentParser(
+        description="Predict function boundaries from a list of disassembled instructions.")
+    parser.add_argument("--model-path", default=str(BASE_DIR / "trained_model" / "lstm_classifier.pt"),
+                        help="Path to the saved model checkpoint.")
+    parser.add_argument("--instructions", required=True,
+                        help="Path to JSON array/text/JSONL (one instruction per line).")
+    parser.add_argument("--output", default=str(BASE_DIR / "output.jsonl"),
+                        help="Optional path to write predictions as JSONL.")
+    parser.add_argument("--threshold", type=float, default=0.5,
+                        help="Probability threshold for boundary classification.")
     parser.add_argument("--batch-size", type=int, default=64, help="Batch size for inference windows.")
     args = parser.parse_args()
 
@@ -101,7 +104,7 @@ def main():
             probs_list.extend([p for p in probs])
 
     agg_probs = aggregate_probs(probs_list, starts, total_len=len(instructions), window_size=20)
-    boundary_indices = [i-1 for i, p in enumerate(agg_probs) if p >= args.threshold]
+    boundary_indices = [i - 1 for i, p in enumerate(agg_probs) if p >= args.threshold]
 
     idx_to_addr = {}
     for i, rec in enumerate(records):

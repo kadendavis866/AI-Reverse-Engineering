@@ -18,7 +18,6 @@ LEARNING_RATE = 1e-2
 BATCH_SIZE = 128
 NUM_WORKERS = 20
 
-
 # Paths/settings for saving/loading precomputed Palmtree embeddings.
 EMBEDDING_DIR = os.environ.get("EMBEDDING_DIR", str(BASE_DIR / "data" / "palmtree_embeddings"))
 # Number of binary (pickle) files per shard when computing embeddings.

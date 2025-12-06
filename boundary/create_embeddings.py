@@ -1,25 +1,12 @@
 import glob
-import os
 import pickle
 import random
-from typing import List, Tuple
-
-import torch
 import torch.nn.functional as F
-from torch.utils.data import DataLoader
-
-from pathlib import Path
-import sys
-sys.path.append(str(Path(__file__).resolve().parent.parent))
-from binary_file_format import BinaryFileDef  # noqa: E402
-from config import (
-    BATCH_SIZE,
-    NUM_WORKERS,
-    EMBEDDING_DIR,
-    EMBEDDING_SHARD_SIZE,
-    BASE_DIR,
-)
 import eval_utils as utils
+from typing import List, Tuple
+from torch.utils.data import DataLoader
+from config import *
+from binary_file_format import BinaryFileDef
 
 
 def build_samples_from_pickle(path: str) -> List[Tuple[List[str], List[int]]]:
