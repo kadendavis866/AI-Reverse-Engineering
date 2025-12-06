@@ -1,0 +1,7 @@
+# Core runtime
+torch==2.9.1
+bert-pytorch==0.0.1a4
+numpy>=1.24.0
+
+# Utilities
+tqdm>=4.65.0
