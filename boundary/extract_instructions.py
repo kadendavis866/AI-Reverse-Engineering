@@ -49,7 +49,7 @@ def parse_instructions(objdump_output: str) -> list[tuple]:
 
 def main():
     parser = argparse.ArgumentParser(description="Extract .text instructions from a binary using objdump.")
-    parser.add_argument("binary", required=True, help="Path to the stripped binary")
+    parser.add_argument("binary", help="Path to the stripped binary")
     parser.add_argument("--output", "-o", default="instructions.jsonl", help="Output path for instruction lines")
     parser.add_argument("--jsonl", action="store_true", help="Write JSONL with idx, addr, inst instead of plain text")
     parser.add_argument("--objdump", default="objdump", help="Objdump binary to use (e.g., objdump or llvm-objdump)")

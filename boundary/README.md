@@ -1,6 +1,6 @@
 # Boundary Detection Pipeline
 
-This repo trains an LSTM classifier on Palmtree embeddings to detect function boundaries from disassembled instructions, and provides a demo workflow on a sample C program.
+Detect function boundaries from disassembly using Palmtree embeddings + LSTM. Includes a demo workflow on a sample C program.
 
 ## Layout
 - `config.py`: Central settings (device, batch size, paths). `BASE_DIR` points to this folder.
@@ -9,7 +9,6 @@ This repo trains an LSTM classifier on Palmtree embeddings to detect function bo
 - `train.py`: Trains the LSTM on cached embeddings, saves to `trained_model/lstm_classifier.pt`.
 - `predict_boundaries.py`: Sliding-window inference on instructions (text/JSON/JSONL); outputs boundary indices and addresses.
 - `extract_instructions.py`: Disassembles a binary’s `.text` (via objdump), outputs instructions (optionally JSONL with idx/addr).
-- `demo/`: Sample C program + Makefile to build unstripped/stripped binaries and symtab.
 
 ## Training (pickles → embeddings → model)
 1) Put pickles under `../data/pickles/` (default glob `../data/pickles/**/*.pkl`).
@@ -24,25 +23,19 @@ This repo trains an LSTM classifier on Palmtree embeddings to detect function bo
    ```
    Model saved to `trained_model/lstm_classifier.pt`.
 
-## Demo (binary → instructions → boundaries → compare)
-1) Build demo binary and symtab:
+## Inference (binary → instructions → boundaries)
+1) Extract instructions from a binary:
    ```bash
-   make -C demo clean all
-   # produces demo_program, demo_program_stripped, symtab.txt
+   python extract_instructions.py --binary path/to/binary --output instructions.jsonl
    ```
-2) Extract instructions with addresses from the stripped binary:
+2) Predict boundaries:
    ```bash
-   python extract_instructions.py demo/demo_program_stripped --jsonl -o instructions.jsonl
-   ```
-3) Predict boundaries:
-   ```bash
-   USE_CUDA=0 python predict_boundaries.py \
-     --instructions instructions.jsonl \
-     --model-path trained_model/lstm_classifier.pt \
-     --output preds.jsonl
-   ```
-   `preds.jsonl` includes `predicted_boundary_indices` and `predicted_boundary_addrs` to line up with `symtab.txt`.
-
+    python predict_boundaries.py \
+      --instructions instructions.jsonl \
+      --model-path trained_model/lstm_classifier.pt \
+      --output boundary_preds.jsonl
+    ```
+   
 ## Notes
 - Palmtree assets expected at `palmtree/transformer.ep19` and `palmtree/vocab`.
 - For CPU-only runs, set `USE_CUDA=0` in the environment.

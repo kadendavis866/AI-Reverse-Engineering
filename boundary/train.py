@@ -61,6 +61,7 @@ class Classifier(object):
     def iterate(self, phase, dataloader):
         total_loss = 0.0
         total_batches = len(dataloader) if hasattr(dataloader, "__len__") else None
+        total_TP = total_TN = total_FP = total_FN = 0
 
         for batch_idx, batch in enumerate(dataloader):
             embeddings, labels = batch
@@ -94,6 +95,11 @@ class Classifier(object):
             batch_FN = int(((labels_flat == 1) & (preds_flat == 0)).sum().item())
             batch_FP = int(((labels_flat == 0) & (preds_flat == 1)).sum().item())
 
+            total_TP += batch_TP
+            total_TN += batch_TN
+            total_FP += batch_FP
+            total_FN += batch_FN
+
             p = batch_TP / (batch_TP + batch_FP + 0.0001)
             r = batch_TP / (batch_TP + batch_FN + 0.0001)
             batch_F1 = 2 * r * p / (r + p + 0.0001)
@@ -103,25 +109,36 @@ class Classifier(object):
                 progress = f"[{batch_idx + 1}/{total_batches}]" if total_batches else f"[{batch_idx + 1}]"
                 print(
                     f"{progress} {phase} acc:{batch_acc:.4f}, F1:{batch_F1:.4f}, loss:{loss_value:.4f}, running_loss:{running_loss:.4f}")
-        return total_loss
+        return total_loss, total_TP, total_TN, total_FP, total_FN
 
     def train(self):
         train_dataloader = self.dataloaders['train']
         val_dataloader = self.dataloaders['val']
         print("# batches of sequence for training", len(train_dataloader))
         print("# batches of sequence for validation", len(val_dataloader))
+        os.makedirs("trained_model", exist_ok=True)
+        metrics_path = os.path.join("trained_model", "metrics.csv")
+        with open(metrics_path, "w") as mfile:
+            mfile.write("epoch,train_acc,val_acc,val_precision,val_recall,val_f1\n")
         for epoch in range(1, 21):
             print(f"Epoch {epoch}")
             self.model.train()
-            train_loss = self.iterate('train', train_dataloader)
+            train_loss, tr_TP, tr_TN, tr_FP, tr_FN = self.iterate('train', train_dataloader)
+            train_acc = (tr_TP + tr_TN) / max(1, (tr_TP + tr_TN + tr_FP + tr_FN))
 
             self.model.eval()
             with torch.no_grad():
-                val_loss = self.iterate('val', val_dataloader)
+                val_loss, v_TP, v_TN, v_FP, v_FN = self.iterate('val', val_dataloader)
             self.scheduler.step(val_loss)
             avg_train_loss = train_loss / max(1, len(train_dataloader))
             avg_val_loss = val_loss / max(1, len(val_dataloader))
             print(f"Epoch {epoch} complete | avg train loss {avg_train_loss:.4f} | avg val loss {avg_val_loss:.4f}")
+            val_p = v_TP / (v_TP + v_FP + 1e-8)
+            val_r = v_TP / (v_TP + v_FN + 1e-8)
+            val_f1 = 2 * val_p * val_r / max(1e-8, (val_p + val_r))
+            val_acc = (v_TP + v_TN) / max(1, (v_TP + v_TN + v_FP + v_FN))
+            with open(metrics_path, "a") as mfile:
+                mfile.write(f"{epoch},{train_acc:.4f},{val_acc:.4f},{val_p:.4f},{val_r:.4f},{val_f1:.4f}\n")
 
     def save_model(self):
         save_dir = BASE_DIR / "trained_model"
