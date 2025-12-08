@@ -1,9 +1,5 @@
 /.idea/
 __pycache__
-/signature/embedding/embed_input
-/signature/embedding/int2insn.map
 /data/
-/signature/embedding/embed_output/embed_1.emb
-/signature/embedding/embed_output/model_1/model.pt
 /boundary/data/
-/signature/rnn/output/sig_model.pt
+/signature/embedding/embed_output/
